@@ -32,6 +32,8 @@ from .util import bfh, bh2u
 from .simple_config import SimpleConfig
 from .logging import get_logger, Logger
 
+import scrypt
+getPoWHash = lambda x: scrypt.hash(x, x, N=1024, r=1, p=1, buflen=32)
 
 _logger = get_logger(__name__)
 
@@ -81,6 +83,8 @@ def hash_header(header: dict) -> str:
 def hash_raw_header(header: str) -> str:
     return hash_encode(sha256d(bfh(header)))
 
+def pow_hash_header(header):
+    return hash_encode(getPoWHash(bfh(serialize_header(header))))
 
 # key: blockhash hex at forkpoint
 # the chain at some key is the best chain that includes the given hash
@@ -283,6 +287,7 @@ class Blockchain(Logger):
     @classmethod
     def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None) -> None:
         _hash = hash_header(header)
+        _powhash = pow_hash_header(header)
         if expected_header_hash and expected_header_hash != _hash:
             raise Exception("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
         if prev_hash != header.get('prev_block_hash'):
@@ -292,7 +297,7 @@ class Blockchain(Logger):
         bits = cls.target_to_bits(target)
         if bits != header.get('bits'):
             raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
-        block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
+        block_hash_as_num = int.from_bytes(bfh(_powhash), byteorder='big')
         if block_hash_as_num > target:
             raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
