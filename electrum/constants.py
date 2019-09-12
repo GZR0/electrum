@@ -61,7 +61,7 @@ class BitcoinMainnet(AbstractNet):
 
     TESTNET = False
     WIF_PREFIX = 0x26
-    ADDRTYPE_P2PKH = 0
+    ADDRTYPE_P2PKH = 26
     ADDRTYPE_P2SH = 5
     SEGWIT_HRP = "bc"
     GENESIS = "0000028bfbf9ccaed8f28b3ca6b3ffe6b65e29490ab0e4430679bf41cc7c164f"
