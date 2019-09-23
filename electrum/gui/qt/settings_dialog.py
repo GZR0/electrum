@@ -79,7 +79,7 @@ class SettingsDialog(WindowModalDialog):
         fee_widgets = []
         tx_widgets = []
         oa_widgets = []
-        server_widgets = []
+        services_widgets = []
 
         # language
         lang_help = _('Select which language is used in the GUI (after restart).')
@@ -170,6 +170,50 @@ class SettingsDialog(WindowModalDialog):
         batch_rbf_cb.stateChanged.connect(on_batch_rbf)
         fee_widgets.append((batch_rbf_cb, None))
 
+        # lightning
+        help_lightning = _("""Enable Lightning Network payments. Note that funds stored in
+lightning channels are not recoverable from your seed. You must backup
+your wallet file after every channel creation.""")
+        lightning_widgets = []
+        lightning_cb = QCheckBox(_("Enable Lightning"))
+        lightning_cb.setToolTip(help_lightning)
+        lightning_cb.setChecked(bool(self.config.get('lightning', False)))
+        def on_lightning_checked(x):
+            self.config.set_key('lightning', bool(x))
+        lightning_cb.stateChanged.connect(on_lightning_checked)
+        lightning_widgets.append((lightning_cb, None))
+
+        help_persist = _("""If this option is checked, Electrum will persist as a daemon after
+you close all your wallet windows. Your local watchtower will keep
+running, and it will protect your channels even if your wallet is not
+open. For this to work, your computer needs to be online regularly.""")
+        persist_cb = QCheckBox(_("Run as daemon after the GUI is closed"))
+        persist_cb.setToolTip(help_persist)
+        persist_cb.setChecked(bool(self.config.get('persist_daemon', False)))
+        def on_persist_checked(x):
+            self.config.set_key('persist_daemon', bool(x))
+        persist_cb.stateChanged.connect(on_persist_checked)
+        lightning_widgets.append((persist_cb, None))
+
+        help_remote_wt = _("""To use a remote watchtower, enter the corresponding URL here""")
+        remote_wt_cb = QCheckBox(_("Use a remote watchtower"))
+        remote_wt_cb.setToolTip(help_remote_wt)
+        remote_wt_cb.setChecked(bool(self.config.get('use_watchtower', False)))
+        def on_remote_wt_checked(x):
+            self.config.set_key('use_watchtower', bool(x))
+            self.watchtower_url_e.setEnabled(bool(x))
+        remote_wt_cb.stateChanged.connect(on_remote_wt_checked)
+        watchtower_url = self.config.get('watchtower_url')
+        self.watchtower_url_e = QLineEdit(watchtower_url)
+        self.watchtower_url_e.setEnabled(self.config.get('use_watchtower', False))
+        def on_wt_url():
+            url = self.watchtower_url_e.text() or None
+            watchtower_url = self.config.set_key('watchtower_url', url)
+            if url:
+                self.lnwatcher.set_remote_watchtower()
+        self.watchtower_url_e.editingFinished.connect(on_wt_url)
+        lightning_widgets.append((remote_wt_cb, self.watchtower_url_e))
+
         msg = _('OpenAlias record, used to receive coins and to sign payment requests.') + '\n\n'\
               + _('The following alias providers are available:') + '\n'\
               + '\n'.join(['https://cryptoname.co/', 'http://xmr.link']) + '\n\n'\
@@ -181,37 +225,59 @@ class SettingsDialog(WindowModalDialog):
         self.alias_e.editingFinished.connect(self.on_alias_edit)
         oa_widgets.append((alias_label, self.alias_e))
 
-        # PayServer
+        # Services
         ssl_cert = self.config.get('ssl_certfile')
         ssl_cert_label = HelpLabel(_('SSL cert file') + ':', 'certificate file, with intermediate certificates if needed')
         self.ssl_cert_e = QPushButton(ssl_cert)
         self.ssl_cert_e.clicked.connect(self.select_ssl_certfile)
-        server_widgets.append((ssl_cert_label, self.ssl_cert_e))
+        services_widgets.append((ssl_cert_label, self.ssl_cert_e))
 
         ssl_privkey = self.config.get('ssl_keyfile')
         ssl_privkey_label = HelpLabel(_('SSL key file') + ':', '')
         self.ssl_privkey_e = QPushButton(ssl_privkey)
         self.ssl_cert_e.clicked.connect(self.select_ssl_certfile)
-        server_widgets.append((ssl_privkey_label, self.ssl_privkey_e))
+        services_widgets.append((ssl_privkey_label, self.ssl_privkey_e))
 
         ssl_domain_label = HelpLabel(_('SSL domain') + ':', '')
         self.ssl_domain_e = QLineEdit('')
         self.ssl_domain_e.setReadOnly(True)
-        server_widgets.append((ssl_domain_label, self.ssl_domain_e))
+        services_widgets.append((ssl_domain_label, self.ssl_domain_e))
 
         self.check_ssl_config()
 
-        payserver_host = self.config.get('payserver_host', 'localhost')
-        payserver_host_label = HelpLabel(_('Hostname') + ':', 'must match your ssl domain')
-        self.payserver_host_e = QLineEdit(payserver_host)
-        self.payserver_host_e.editingFinished.connect(self.on_payserver_host)
-        server_widgets.append((payserver_host_label, self.payserver_host_e))
+        hostname = self.config.get('services_hostname', 'localhost')
+        hostname_label = HelpLabel(_('Hostname') + ':', 'must match your SSL domain')
+        self.hostname_e = QLineEdit(hostname)
+        self.hostname_e.editingFinished.connect(self.on_hostname)
+        services_widgets.append((hostname_label, self.hostname_e))
 
-        payserver_port = self.config.get('payserver_port', '')
-        payserver_port_label = HelpLabel(_('Port') + ':', msg)
+        payserver_cb = QCheckBox(_("Run PayServer"))
+        payserver_cb.setToolTip("Configure a port")
+        payserver_cb.setChecked(bool(self.config.get('run_payserver', False)))
+        def on_payserver_checked(x):
+            self.config.set_key('run_payserver', bool(x))
+            self.payserver_port_e.setEnabled(bool(x))
+        payserver_cb.stateChanged.connect(on_payserver_checked)
+        payserver_port = self.config.get('payserver_port', 8002)
         self.payserver_port_e = QLineEdit(str(payserver_port))
         self.payserver_port_e.editingFinished.connect(self.on_payserver_port)
-        server_widgets.append((payserver_port_label, self.payserver_port_e))
+        self.payserver_port_e.setEnabled(self.config.get('run_payserver', False))
+        services_widgets.append((payserver_cb, self.payserver_port_e))
+
+        help_local_wt = _("""To setup a local watchtower, you must run Electrum on a machine
+        that is always connected to the internet. Configure a port if you want it to be public.""")
+        local_wt_cb = QCheckBox(_("Run Watchtower"))
+        local_wt_cb.setToolTip(help_local_wt)
+        local_wt_cb.setChecked(bool(self.config.get('run_watchtower', False)))
+        def on_local_wt_checked(x):
+            self.config.set_key('run_watchtower', bool(x))
+            self.local_wt_port_e.setEnabled(bool(x))
+        local_wt_cb.stateChanged.connect(on_local_wt_checked)
+        watchtower_port = self.config.get('watchtower_port', '')
+        self.local_wt_port_e = QLineEdit(str(watchtower_port))
+        self.local_wt_port_e.setEnabled(self.config.get('run_watchtower', False))
+        self.local_wt_port_e.editingFinished.connect(self.on_watchtower_port)
+        services_widgets.append((local_wt_cb, self.local_wt_port_e))
 
         # units
         units = base_units_list
@@ -239,18 +305,6 @@ class SettingsDialog(WindowModalDialog):
             self.window.update_status()
         unit_combo.currentIndexChanged.connect(lambda x: on_unit(x, nz))
         gui_widgets.append((unit_label, unit_combo))
-
-        block_explorers = sorted(util.block_explorer_info().keys())
-        msg = _('Choose which online block explorer to use for functions that open a web browser')
-        block_ex_label = HelpLabel(_('Online Block Explorer') + ':', msg)
-        block_ex_combo = QComboBox()
-        block_ex_combo.addItems(block_explorers)
-        block_ex_combo.setCurrentIndex(block_ex_combo.findText(util.block_explorer(self.config)))
-        def on_be(x):
-            be_result = block_explorers[block_ex_combo.currentIndex()]
-            self.config.set_key('block_explorer', be_result, True)
-        block_ex_combo.currentIndexChanged.connect(on_be)
-        gui_widgets.append((block_ex_label, block_ex_combo))
 
         system_cameras = qrscanner._find_system_cameras()
         qr_combo = QComboBox()
@@ -366,6 +420,18 @@ class SettingsDialog(WindowModalDialog):
         outrounding_cb.stateChanged.connect(on_outrounding)
         tx_widgets.append((outrounding_cb, None))
 
+        block_explorers = sorted(util.block_explorer_info().keys())
+        msg = _('Choose which online block explorer to use for functions that open a web browser')
+        block_ex_label = HelpLabel(_('Online Block Explorer') + ':', msg)
+        block_ex_combo = QComboBox()
+        block_ex_combo.addItems(block_explorers)
+        block_ex_combo.setCurrentIndex(block_ex_combo.findText(util.block_explorer(self.config)))
+        def on_be(x):
+            be_result = block_explorers[block_ex_combo.currentIndex()]
+            self.config.set_key('block_explorer', be_result, True)
+        block_ex_combo.currentIndexChanged.connect(on_be)
+        tx_widgets.append((block_ex_label, block_ex_combo))
+
         # Fiat Currency
         hist_checkbox = QCheckBox()
         hist_capgains_checkbox = QCheckBox()
@@ -460,23 +526,24 @@ class SettingsDialog(WindowModalDialog):
 
         fiat_widgets = []
         fiat_widgets.append((QLabel(_('Fiat currency')), ccy_combo))
+        fiat_widgets.append((QLabel(_('Source')), ex_combo))
         fiat_widgets.append((QLabel(_('Show history rates')), hist_checkbox))
         fiat_widgets.append((QLabel(_('Show capital gains in history')), hist_capgains_checkbox))
         fiat_widgets.append((QLabel(_('Show Fiat balance for addresses')), fiat_address_checkbox))
-        fiat_widgets.append((QLabel(_('Source')), ex_combo))
 
         tabs_info = [
+            (gui_widgets, _('General')),
             (fee_widgets, _('Fees')),
             (tx_widgets, _('Transactions')),
-            (gui_widgets, _('General')),
+            (lightning_widgets, _('Lightning')),
             (fiat_widgets, _('Fiat')),
-            (server_widgets, _('PayServer')),
+            (services_widgets, _('Services')),
             (oa_widgets, _('OpenAlias')),
         ]
         for widgets, name in tabs_info:
             tab = QWidget()
-            grid = QGridLayout(tab)
-            grid.setColumnStretch(0,1)
+            tab_vbox = QVBoxLayout(tab)
+            grid = QGridLayout()
             for a,b in widgets:
                 i = grid.rowCount()
                 if b:
@@ -485,6 +552,8 @@ class SettingsDialog(WindowModalDialog):
                     grid.addWidget(b, i, 1)
                 else:
                     grid.addWidget(a, i, 0, 1, 2)
+            tab_vbox.addLayout(grid)
+            tab_vbox.addStretch(1)
             tabs.addTab(tab, name)
 
         vbox.addWidget(tabs)
@@ -542,10 +611,14 @@ class SettingsDialog(WindowModalDialog):
         if SSL_error:
             self.ssl_domain_e.setText(SSL_error)
 
-    def on_payserver_host(self):
-        hostname = str(self.payserver_host_e.text())
-        self.config.set_key('payserver_host', hostname, True)
+    def on_hostname(self):
+        hostname = str(self.hostname_e.text())
+        self.config.set_key('services_hostname', hostname, True)
 
     def on_payserver_port(self):
         port = int(self.payserver_port_e.text())
         self.config.set_key('payserver_port', port, True)
+
+    def on_watchtower_port(self):
+        port = int(self.payserver_port_e.text())
+        self.config.set_key('watchtower_port', port, True)
