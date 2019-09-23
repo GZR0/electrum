@@ -52,6 +52,7 @@ from .util import (read_QIcon, MONOSPACE_FONT, Buttons, CancelButton, OkButton,
 
 if TYPE_CHECKING:
     from electrum.wallet import Abstract_Wallet
+    from .main_window import ElectrumWindow
 
 
 _logger = get_logger(__name__)
@@ -107,7 +108,7 @@ def get_item_key(tx_item):
 
 class HistoryModel(QAbstractItemModel, Logger):
 
-    def __init__(self, parent):
+    def __init__(self, parent: 'ElectrumWindow'):
         QAbstractItemModel.__init__(self, parent)
         Logger.__init__(self)
         self.parent = parent
@@ -251,8 +252,12 @@ class HistoryModel(QAbstractItemModel, Logger):
         self.parent.utxo_list.update()
 
     def get_domain(self):
-        '''Overridden in address_dialog.py'''
+        """Overridden in address_dialog.py"""
         return self.parent.wallet.get_addresses()
+
+    def should_include_lightning_payments(self) -> bool:
+        """Overridden in address_dialog.py"""
+        return True
 
     @profiler
     def refresh(self, reason: str):
@@ -267,7 +272,9 @@ class HistoryModel(QAbstractItemModel, Logger):
         if fx: fx.history_used_spot = False
         wallet = self.parent.wallet
         self.set_visibility_of_columns()
-        transactions = wallet.get_full_history(self.parent.fx)
+        transactions = wallet.get_full_history(self.parent.fx,
+                                               onchain_domain=self.get_domain(),
+                                               include_lightning=self.should_include_lightning_payments())
         if transactions == list(self.transactions.values()):
             return
         old_length = len(self.transactions)
@@ -655,9 +662,12 @@ class HistoryList(MyTreeView, AcceptFileDragDrop):
         try:
             with open(fn) as f:
                 tx = self.parent.tx_from_text(f.read())
-                self.parent.save_transaction_into_wallet(tx)
         except IOError as e:
             self.parent.show_error(e)
+            return
+        if not tx:
+            return
+        self.parent.save_transaction_into_wallet(tx)
 
     def export_history_dialog(self):
         d = WindowModalDialog(self, _('Export History'))
@@ -686,11 +696,7 @@ class HistoryList(MyTreeView, AcceptFileDragDrop):
         self.parent.show_message(_("Your wallet history has been successfully exported."))
 
     def do_export_history(self, file_name, is_csv):
-        hist = self.wallet.get_full_history(domain=self.hm.get_domain(),
-                                            from_timestamp=None,
-                                            to_timestamp=None,
-                                            fx=self.parent.fx,
-                                            show_fees=True)
+        hist = self.wallet.get_detailed_history(fx=self.parent.fx)
         txns = hist['transactions']
         lines = []
         if is_csv:
@@ -698,7 +704,7 @@ class HistoryList(MyTreeView, AcceptFileDragDrop):
                 lines.append([item['txid'],
                               item.get('label', ''),
                               item['confirmations'],
-                              item['value'],
+                              item['bc_value'],
                               item.get('fiat_value', ''),
                               item.get('fee', ''),
                               item.get('fiat_fee', ''),
