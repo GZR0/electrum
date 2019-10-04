@@ -77,18 +77,18 @@ if not is_android:
     check_imports()
 
 
-from electrum.logging import get_logger, configure_logging
-from electrum import util
-from electrum import constants
-from electrum import SimpleConfig
-from electrum.wallet import Wallet
-from electrum.storage import WalletStorage, get_derivation_used_for_hw_device_encryption
-from electrum.util import print_msg, print_stderr, json_encode, json_decode, UserCancelled
-from electrum.util import InvalidPassword
-from electrum.commands import get_parser, known_commands, Commands, config_variables
-from electrum import daemon
-from electrum import keystore
-from electrum.util import create_and_start_event_loop
+from electrum_gzro.logging import get_logger, configure_logging
+from electrum_gzro import util
+from electrum_gzro import constants
+from electrum_gzro import SimpleConfig
+from electrum_gzro.wallet import Wallet
+from electrum_gzro.storage import WalletStorage, get_derivation_used_for_hw_device_encryption
+from electrum_gzro.util import print_msg, print_stderr, json_encode, json_decode, UserCancelled
+from electrum_gzro.util import InvalidPassword
+from electrum_gzro.commands import get_parser, known_commands, Commands, config_variables
+from electrum_gzro import daemon
+from electrum_gzro import keystore
+from electrum_gzro.util import create_and_start_event_loop
 
 _logger = get_logger(__name__)
 
@@ -243,7 +243,7 @@ async def run_offline_command(config, config_options, plugins):
 
 
 def init_plugins(config, gui_name):
-    from electrum.plugin import Plugins
+    from electrum_gzro.plugin import Plugins
     return Plugins(config, gui_name)
 
 def sys_exit(i):
@@ -337,7 +337,7 @@ if __name__ == '__main__':
         raise Exception('lightning option not available on mainnet')
 
     if config.get('lightning'):
-        from electrum.ecc_fast import is_using_fast_ecc
+        from electrum_gzro.ecc_fast import is_using_fast_ecc
         if not is_using_fast_ecc():
             raise Exception('libsecp256k1 library not available. '
                             'Verifying Lightning channels is too computationally expensive without libsecp256k1, aborting.')
