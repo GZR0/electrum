@@ -82,7 +82,7 @@ setup(
             'icons/*',
         ],
     },
-    scripts=['electrum_gzro/electrum'],
+    scripts=['electrum_gzro/electrum-gzro'],
     data_files=data_files,
     description="Lightweight Gravity Wallet",
     author="Thomas Voegtlin",
