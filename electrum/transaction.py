@@ -30,6 +30,7 @@
 import struct
 import traceback
 import sys
+import time
 from typing import (Sequence, Union, NamedTuple, Tuple, Optional, Iterable,
                     Callable, List, Dict, Set, TYPE_CHECKING)
 from collections import defaultdict
@@ -556,7 +557,7 @@ def deserialize(raw: str, force_full_parse=False) -> dict:
     vds = BCDataStream()
     vds.write(raw_bytes)
     d['version'] = vds.read_int32()
-    d['timestamp'] = vds.read_int32()
+    d['timestamp'] = vds.read_uint32()
     n_vin = vds.read_compact_size()
     is_segwit = (n_vin == 0)
     if is_segwit:
@@ -610,8 +611,9 @@ class Transaction:
         self._inputs = None
         self._outputs = None  # type: List[TxOutput]
         self.locktime = 0
-        self.version = 2
-        self.timestamp = 0
+        self._locktime = 0
+        self.version = 1
+        self.timestamp = int(time.time())
         # by default we assume this is a partial txn;
         # this value will get properly set when deserializing
         self.is_partial_originally = True
@@ -987,6 +989,7 @@ class Transaction:
     def serialize_preimage(self, txin_index: int, *,
                            bip143_shared_txdigest_fields: BIP143SharedTxDigestFields = None) -> str:
         nVersion = int_to_hex(self.version, 4)
+        nTimestamp = int_to_hex(self.timestamp, 4)
         nHashType = int_to_hex(1, 4)  # SIGHASH_ALL
         nLocktime = int_to_hex(self.locktime, 4)
         inputs = self.inputs()
@@ -1003,12 +1006,12 @@ class Transaction:
             scriptCode = var_int(len(preimage_script) // 2) + preimage_script
             amount = int_to_hex(txin['value'], 8)
             nSequence = int_to_hex(txin.get('sequence', 0xffffffff - 1), 4)
-            preimage = nVersion + hashPrevouts + hashSequence + outpoint + scriptCode + amount + nSequence + hashOutputs + nLocktime + nHashType
+            preimage = nVersion + nTimestamp + hashPrevouts + hashSequence + outpoint + scriptCode + amount + nSequence + hashOutputs + nLocktime + nHashType
         else:
             txins = var_int(len(inputs)) + ''.join(self.serialize_input(txin, self.get_preimage_script(txin) if txin_index==k else '')
                                                    for k, txin in enumerate(inputs))
             txouts = var_int(len(outputs)) + ''.join(self.serialize_output(o) for o in outputs)
-            preimage = nVersion + txins + txouts + nLocktime + nHashType
+            preimage = nVersion + nTimestamp + txins + txouts + nLocktime + nHashType
         return preimage
 
     def is_segwit(self, guess_for_address=False):
@@ -1238,6 +1241,15 @@ class Transaction:
         tx = cls(d['hex'])
         tx.deserialize(True)
         return tx
+    
+    @property
+    def locktime(self):
+        return self._locktime
+
+    @locktime.setter
+    def locktime(self, value):
+        self._locktime = 0
+    
 
 
 def tx_from_str(txt: str) -> str:
