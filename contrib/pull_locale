@@ -13,7 +13,7 @@ except ImportError as e:
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 os.chdir('..')
 
-cmd = "find electrum -type f -name '*.py' -o -name '*.kv'"
+cmd = "find electrum_gzro -type f -name '*.py' -o -name '*.kv'"
 
 files = subprocess.check_output(cmd, shell=True)
 
@@ -29,7 +29,7 @@ cmd = 'xgettext -s --from-code UTF-8 --language Python --no-wrap -f app.fil --ou
 print('Generate template')
 os.system(cmd)
 
-os.chdir('electrum')
+os.chdir('electrum_gzro')
 
 crowdin_identifier = 'electrum'
 crowdin_file_name = 'files[electrum-client/messages.pot]'
