@@ -47,7 +47,7 @@ if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
             usr_share = os.path.expanduser('~/.local/share')
     data_files += [
         (os.path.join(usr_share, 'applications/'), ['electrum-gzro.desktop']),
-        (os.path.join(usr_share, icons_dirname), ['electrum_gzro/gui/icons/electrum.png']),
+        (os.path.join(usr_share, icons_dirname), ['electrum_gzro/gui/icons/electrum-gzro.png']),
     ]
 
 extras_require = {
