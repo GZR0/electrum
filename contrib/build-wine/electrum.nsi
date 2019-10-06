@@ -6,9 +6,9 @@
 ;--------------------------------
 ;Variables
 
-  !define PRODUCT_NAME "Electrum"
-  !define PRODUCT_WEB_SITE "https://github.com/spesmilo/electrum"
-  !define PRODUCT_PUBLISHER "Electrum Technologies GmbH"
+  !define PRODUCT_NAME "Electrum GZRO Gravity"
+  !define PRODUCT_WEB_SITE "https://github.com/GZR0/electrum"
+  !define PRODUCT_PUBLISHER "Gravity GZRO"
   !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
 ;--------------------------------
@@ -71,7 +71,6 @@
 
   !define MUI_ABORTWARNING
   !define MUI_ABORTWARNING_TEXT "Are you sure you wish to abort the installation of ${PRODUCT_NAME}?"
-  
   !define MUI_ICON "c:\electrum\electrum\gui\icons\electrum-gzro.ico"
   
 ;--------------------------------
