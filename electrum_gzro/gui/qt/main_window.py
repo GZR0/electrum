@@ -681,6 +681,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                               "recovered from a secret phrase that you can memorize or write on paper.") + " " +
                            _("Startup times are instant because it operates in conjunction with high-performance "
                               "servers that handle the most complicated parts of the Gravity system.") + "\n\n" +
+                           _("Please note: Any balance you hold in your Electrum wallet will NOT generate "
+                              "the 21% gzro staking reward. If you want to receive those rewards, you'll have"
+                              "to install and run a full node wallet (download via http://gzro.net).") + "\n\n" +
                            _("Uses icons from the Icons8 icon pack (icons8.com).")))
 
     def show_update_check(self, version=None):
