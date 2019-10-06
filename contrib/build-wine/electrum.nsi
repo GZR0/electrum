@@ -6,9 +6,9 @@
 ;--------------------------------
 ;Variables
 
-  !define PRODUCT_NAME "Electrum"
-  !define PRODUCT_WEB_SITE "https://github.com/spesmilo/electrum"
-  !define PRODUCT_PUBLISHER "Electrum Technologies GmbH"
+  !define PRODUCT_NAME "Electrum GZRO Gravity"
+  !define PRODUCT_WEB_SITE "https://github.com/GZR0/electrum"
+  !define PRODUCT_PUBLISHER "Gravity GZRO"
   !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
 ;--------------------------------
@@ -72,7 +72,7 @@
   !define MUI_ABORTWARNING
   !define MUI_ABORTWARNING_TEXT "Are you sure you wish to abort the installation of ${PRODUCT_NAME}?"
   
-  !define MUI_ICON "c:\electrum\electrum\gui\icons\electrum-gzro.ico"
+  !define MUI_ICON "c:\electrum_gzro\electrum_gzro\gui\icons\electrum-gzro.ico"
   
 ;--------------------------------
 ;Pages
@@ -111,7 +111,7 @@ Section
   
   ;Files to pack into the installer
   File /r "dist\electrum\*.*"
-  File "c:\electrum\electrum\gui\icons\electrum-gzro.ico"
+  File "c:\electrum_gzro\electrum_gzro\gui\icons\electrum-gzro.ico"
 
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT_NAME}" "" $INSTDIR

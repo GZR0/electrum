@@ -124,7 +124,7 @@ info "preparing electrum-locale."
         fail "Please install gettext"
     fi
     for i in ./locale/*; do
-        dir="$PROJECT_ROOT/electrum/$i/LC_MESSAGES"
+        dir="$PROJECT_ROOT/electrum_gzro/$i/LC_MESSAGES"
         mkdir -p $dir
         msgfmt --output-file="$dir/electrum.mo" "$i/electrum.po" || true
     done
@@ -146,7 +146,7 @@ cp "/usr/lib/x86_64-linux-gnu/libzbar.so.0" "$APPDIR/usr/lib/libzbar.so.0"
 
 info "desktop integration."
 cp "$PROJECT_ROOT/electrum-gzro.desktop" "$APPDIR/electrum-gzro.desktop"
-cp "$PROJECT_ROOT/electrum/gui/icons/electrum-gzro.png" "$APPDIR/electrum-gzro.png"
+cp "$PROJECT_ROOT/electrum_gzro/gui/icons/electrum-gzro.png" "$APPDIR/electrum-gzro.png"
 
 
 # add launcher

@@ -8,7 +8,7 @@ from electrum_gzro.wallet import Wallet, create_new_wallet
 from electrum_gzro.commands import Commands
 
 
-config = SimpleConfig({"testnet": True})  # to use ~/.electrum/testnet as datadir
+config = SimpleConfig({"testnet": True})  # to use ~/.electrum-gzro/testnet as datadir
 constants.set_testnet()  # to set testnet magic bytes
 daemon = Daemon(config, listen_jsonrpc=False)
 network = daemon.network
