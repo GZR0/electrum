@@ -178,7 +178,7 @@ class ElectrumWindow(App):
 
     def on_new_intent(self, intent):
         data = intent.getDataString()
-        if intent.getScheme() == 'bitcoin':
+        if intent.getScheme() == 'gravity':
             self.set_URI(data)
         elif intent.getScheme() == 'lightning':
             self.set_ln_invoice(data)
@@ -386,7 +386,7 @@ class ElectrumWindow(App):
         if is_address(data):
             self.set_URI(data)
             return
-        if data.startswith('bitcoin:'):
+        if data.startswith('gravity:'):
             self.set_URI(data)
             return
         if data.startswith('ln'):
@@ -539,7 +539,7 @@ class ElectrumWindow(App):
         self.fiat_unit = self.fx.ccy if self.fx.is_enabled() else ''
         # default tab
         self.switch_to('history')
-        # bind intent for bitcoin: URI scheme
+        # bind intent for gravity: URI scheme
         if platform == 'android':
             from android import activity
             from jnius import autoclass

@@ -8,7 +8,7 @@ include contrib/requirements/requirements-hw.txt
 recursive-include packages *.py
 recursive-include packages cacert.pem
 
-graft electrum
+graft electrum_gzro
 prune electrum_gzro/tests
 
 global-exclude __pycache__
