@@ -38,8 +38,9 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     try:
         import scrypt
-        getPoWHash = lambda x: scrypt.hash(x, x, N=1024, r=1, p=1, buflen=32)
-    except ImportError:
+        getPoWHash = scrypt.getPoWHash
+    except ImportError as e:
+        util.print_msg(str(e))
         util.print_msg("Warning: package scrypt not available; synchronization could be very slow")
         from .scrypt import scrypt_1024_1_1_80 as getPoWHash
 

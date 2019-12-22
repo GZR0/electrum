@@ -1,13 +1,13 @@
 [app]
 
 # (str) Title of your application
-title = Electrum
+title = Electrum GZRO
 
 # (str) Package name
-package.name = Electrum
+package.name = electrumgravitygzro
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.electrum
+package.domain = nl.happyworx
 
 # (str) Source code where the main.py live
 source.dir = .
@@ -47,7 +47,7 @@ requirements =
     libffi,
     libsecp256k1,
     pycryptodomex==bfc1cca093a7344c9ed2b7c34bc560db6dca662a,
-    scrypt
+    gzro-scrypt
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/gui/kivy/theming/splash.png
