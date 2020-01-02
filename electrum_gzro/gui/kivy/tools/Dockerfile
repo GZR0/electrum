@@ -166,6 +166,7 @@ RUN cd /opt \
     && git clone https://github.com/kivy/python-for-android \
     && cd python-for-android \
     && git remote add sombernight https://github.com/SomberNight/python-for-android \
+    && git remote add gzro https://github.com/GZR0/python-for-android \
     && git fetch --all \
     && git checkout dd69749f79dee0fdbe25ca7b04238b7cdada7925 \
        # allowBackup="false":
@@ -176,6 +177,8 @@ RUN cd /opt \
     && git cherry-pick 5545a81c6c47436a41d2cf74194ab6f711e54ad6 \
        # gradle: persist debug keystore:
     && git cherry-pick af93820bcd7fb85710f8ba469be3a6e5acb68b08 \
+       # gzro recipe
+    && git cherry-pick 47ac4be726b18101b62aa23ae02b41c748533be5 \
     && python3 -m pip install --user -e .
 
 # build env vars
