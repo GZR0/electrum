@@ -152,7 +152,7 @@ class BitcoinAverage(ExchangeBase):
 
     async def get_rates(self, ccy):
         json = await self.get_json('apiv2.bitcoinaverage.com', '/indices/global/ticker/short')
-        return dict([(r.replace("BTC", ""), Decimal(json[r]['last']))
+        return dict([(r.replace("GZRO", ""), Decimal(json[r]['last']))
                      for r in json if r != 'timestamp'])
 
 
@@ -167,8 +167,8 @@ class BitcoinVenezuela(ExchangeBase):
 
     async def get_rates(self, ccy):
         json = await self.get_json('api.bitcoinvenezuela.com', '/')
-        rates = [(r, json['BTC'][r]) for r in json['BTC']
-                 if json['BTC'][r] is not None]  # Giving NULL for LTC
+        rates = [(r, json['GZRO'][r]) for r in json['BTC']
+                 if json['GZRO'][r] is not None]  # Giving NULL for LTC
         return dict(rates)
 
     def history_ccys(self):
@@ -176,29 +176,8 @@ class BitcoinVenezuela(ExchangeBase):
 
     async def request_history(self, ccy):
         json = await self.get_json('api.bitcoinvenezuela.com',
-                             "/historical/index.php?coin=BTC")
-        return json[ccy +'_BTC']
-
-
-class Bitbank(ExchangeBase):
-
-    async def get_rates(self, ccy):
-        json = await self.get_json('public.bitbank.cc', '/btc_jpy/ticker')
-        return {'JPY': Decimal(json['data']['last'])}
-
-
-class BitFlyer(ExchangeBase):
-
-    async def get_rates(self, ccy):
-        json = await self.get_json('bitflyer.jp', '/api/echo/price')
-        return {'JPY': Decimal(json['mid'])}
-
-
-class BitPay(ExchangeBase):
-
-    async def get_rates(self, ccy):
-        json = await self.get_json('bitpay.com', '/api/rates')
-        return dict([(r['code'], Decimal(r['rate'])) for r in json])
+                             "/historical/index.php?coin=GZRO")
+        return json[ccy +'_GZRO']
 
 
 class Bitso(ExchangeBase):
@@ -237,7 +216,7 @@ class BlockchainInfo(ExchangeBase):
 class Bylls(ExchangeBase):
 
     async def get_rates(self, ccy):
-        json = await self.get_json('bylls.com', '/api/price?from_currency=BTC&to_currency=CAD')
+        json = await self.get_json('bylls.com', '/api/price?from_currency=GZRO&to_currency=CAD')
         return {'CAD': Decimal(json['public_price']['to_price'])}
 
 
@@ -245,7 +224,7 @@ class Coinbase(ExchangeBase):
 
     async def get_rates(self, ccy):
         json = await self.get_json('api.coinbase.com',
-                             '/v2/exchange-rates?currency=BTC')
+                             '/v2/exchange-rates?currency=GZRO')
         return {ccy: Decimal(rate) for (ccy, rate) in json["data"]["rates"].items()}
 
 
@@ -299,9 +278,9 @@ class CoinDesk(ExchangeBase):
 class CoinGecko(ExchangeBase):
 
     async def get_rates(self, ccy):
-        json = await self.get_json('api.coingecko.com', '/api/v3/exchange_rates')
-        return dict([(ccy.upper(), Decimal(d['value']))
-                     for ccy, d in json['rates'].items()])
+        json = await self.get_json('api.coingecko.com', '/api/v3/coins/gravity?localization=false&tickers=false&community_data=false&developer_data=false&sparkline=false')
+        return dict([(ccy.upper(), Decimal(d))
+                     for ccy, d in json['market_data']['current_price'].items()])
 
     def history_ccys(self):
         # CoinGecko seems to have historical data for all ccys it supports
@@ -309,7 +288,7 @@ class CoinGecko(ExchangeBase):
 
     async def request_history(self, ccy):
         history = await self.get_json('api.coingecko.com',
-                                      '/api/v3/coins/bitcoin/market_chart?vs_currency=%s&days=max' % ccy)
+                                      '/api/v3/coins/gravity/market_chart?vs_currency=%s&days=max' % ccy)
 
         return dict([(datetime.utcfromtimestamp(h[0]/1000).strftime('%Y-%m-%d'), h[1])
                      for h in history['prices']])

@@ -32,6 +32,7 @@ import traceback
 import sys
 import io
 import base64
+import time
 from typing import (Sequence, Union, NamedTuple, Tuple, Optional, Iterable,
                     Callable, List, Dict, Set, TYPE_CHECKING)
 from collections import defaultdict
@@ -537,7 +538,8 @@ class Transaction:
         self._inputs = None  # type: List[TxInput]
         self._outputs = None  # type: List[TxOutput]
         self._locktime = 0
-        self._version = 2
+        self._version = 1
+        self._timestamp = int(time.time())
 
         self._cached_txid = None  # type: Optional[str]
 
@@ -547,7 +549,7 @@ class Transaction:
 
     @locktime.setter
     def locktime(self, value):
-        self._locktime = value
+        self._locktime = 0
         self.invalidate_ser_cache()
 
     @property
@@ -557,6 +559,15 @@ class Transaction:
     @version.setter
     def version(self, value):
         self._version = value
+        self.invalidate_ser_cache()
+
+    @property
+    def timestamp(self):
+        return self._timestamp
+
+    @timestamp.setter
+    def timestamp(self, value):
+        self._timestamp = value
         self.invalidate_ser_cache()
 
     def to_json(self) -> dict:
@@ -588,6 +599,7 @@ class Transaction:
         vds = BCDataStream()
         vds.write(raw_bytes)
         self._version = vds.read_int32()
+        self._timestamp = vds.read_uint32()
         n_vin = vds.read_compact_size()
         is_segwit = (n_vin == 0)
         if is_segwit:
@@ -808,6 +820,7 @@ class Transaction:
         """
         self.deserialize()
         nVersion = int_to_hex(self.version, 4)
+        nTimestamp = int_to_hex(self.timestamp, 4)
         nLocktime = int_to_hex(self.locktime, 4)
         inputs = self.inputs()
         outputs = self.outputs()
@@ -827,9 +840,9 @@ class Transaction:
             marker = '00'
             flag = '01'
             witness = ''.join(self.serialize_witness(x, estimate_size=estimate_size) for x in inputs)
-            return nVersion + marker + flag + txins + txouts + witness + nLocktime
+            return nVersion + nTimestamp + marker + flag + txins + txouts + witness + nLocktime
         else:
-            return nVersion + txins + txouts + nLocktime
+            return nVersion + nTimestamp + txins + txouts + nLocktime
 
     def txid(self) -> Optional[str]:
         if self._cached_txid is None:
@@ -1786,6 +1799,7 @@ class PartialTransaction(Transaction):
     def serialize_preimage(self, txin_index: int, *,
                            bip143_shared_txdigest_fields: BIP143SharedTxDigestFields = None) -> str:
         nVersion = int_to_hex(self.version, 4)
+        nTimestamp = int_to_hex(self.timestamp, 4)
         nLocktime = int_to_hex(self.locktime, 4)
         inputs = self.inputs()
         outputs = self.outputs()
@@ -1805,12 +1819,12 @@ class PartialTransaction(Transaction):
             scriptCode = var_int(len(preimage_script) // 2) + preimage_script
             amount = int_to_hex(txin.value_sats(), 8)
             nSequence = int_to_hex(txin.nsequence, 4)
-            preimage = nVersion + hashPrevouts + hashSequence + outpoint + scriptCode + amount + nSequence + hashOutputs + nLocktime + nHashType
+            preimage = nVersion + nTimestamp + hashPrevouts + hashSequence + outpoint + scriptCode + amount + nSequence + hashOutputs + nLocktime + nHashType
         else:
             txins = var_int(len(inputs)) + ''.join(self.serialize_input(txin, preimage_script if txin_index==k else '')
                                                    for k, txin in enumerate(inputs))
             txouts = var_int(len(outputs)) + ''.join(o.serialize_to_network().hex() for o in outputs)
-            preimage = nVersion + txins + txouts + nLocktime + nHashType
+            preimage = nVersion + nTimestamp + txins + txouts + nLocktime + nHashType
         return preimage
 
     def sign(self, keypairs) -> None:

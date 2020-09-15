@@ -34,6 +34,18 @@ from .simple_config import SimpleConfig
 from .logging import get_logger, Logger
 
 
+import warnings
+# scrypt is outdated a little, ignore it's warning
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    try:
+        import scrypt
+        getPoWHash = scrypt.getPoWHash
+    except ImportError as e:
+        util.print_msg(str(e))
+        util.print_msg("Warning: package scrypt not available; synchronization could be very slow")
+        from .scrypt import scrypt_1024_1_1_80 as getPoWHash
+
 _logger = get_logger(__name__)
 
 HEADER_SIZE = 80  # bytes
@@ -76,7 +88,7 @@ def hash_header(header: dict) -> str:
         return '0' * 64
     if header.get('prev_block_hash') is None:
         header['prev_block_hash'] = '00'*32
-    return hash_raw_header(serialize_header(header))
+    return hash_encode(getPoWHash(bfh(serialize_header(header))))
 
 
 def hash_raw_header(header: str) -> str:
@@ -305,12 +317,6 @@ class Blockchain(Logger):
             raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
         if constants.net.TESTNET:
             return
-        bits = cls.target_to_bits(target)
-        if bits != header.get('bits'):
-            raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
-        block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
-        if block_hash_as_num > target:
-            raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
     def verify_chunk(self, index: int, data: bytes) -> None:
         num = len(data) // HEADER_SIZE
@@ -536,7 +542,7 @@ class Blockchain(Logger):
         bits = last.get('bits')
         target = self.bits_to_target(bits)
         nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 14 * 24 * 60 * 60
+        nTargetTimespan = 16 * 60
         nActualTimespan = max(nActualTimespan, nTargetTimespan // 4)
         nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
         new_target = min(MAX_TARGET, (target * nActualTimespan) // nTargetTimespan)

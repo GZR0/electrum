@@ -46,8 +46,8 @@ if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
         else:
             usr_share = os.path.expanduser('~/.local/share')
     data_files += [
-        (os.path.join(usr_share, 'applications/'), ['electrum.desktop']),
-        (os.path.join(usr_share, icons_dirname), ['electrum/gui/icons/electrum.png']),
+        (os.path.join(usr_share, 'applications/'), ['electrum-gzro.desktop']),
+        (os.path.join(usr_share, icons_dirname), ['electrum/gui/icons/electrum-gzro.png']),
     ]
 
 extras_require = {
@@ -65,37 +65,37 @@ extras_require['fast'] = extras_require['crypto']
 
 
 setup(
-    name="Electrum",
+    name="Electrum-GZRO",
     version=version.ELECTRUM_VERSION,
     python_requires='>={}'.format(MIN_PYTHON_VERSION),
     install_requires=requirements,
     extras_require=extras_require,
     packages=[
-        'electrum',
-        'electrum.gui',
-        'electrum.gui.qt',
-        'electrum.plugins',
-    ] + [('electrum.plugins.'+pkg) for pkg in find_packages('electrum/plugins')],
+        'electrum_gzro',
+        'electrum_gzro.gui',
+        'electrum_gzro.gui.qt',
+        'electrum_gzro.plugins',
+    ] + [('electrum_gzro.plugins.'+pkg) for pkg in find_packages('electrum/plugins')],
     package_dir={
-        'electrum': 'electrum'
+        'electrum_gzro': 'electrum'
     },
     package_data={
         '': ['*.txt', '*.json', '*.ttf', '*.otf', '*.csv'],
-        'electrum': [
+        'electrum_gzro': [
             'wordlist/*.txt',
             'locale/*/LC_MESSAGES/electrum.mo',
             'lnwire/*.csv',
         ],
-        'electrum.gui': [
+        'electrum_gzro.gui': [
             'icons/*',
         ],
     },
-    scripts=['electrum/electrum'],
+    scripts=['electrum/electrum-gzro'],
     data_files=data_files,
-    description="Lightweight Bitcoin Wallet",
+    description="Lightweight Gravity Wallet",
     author="Thomas Voegtlin",
     author_email="thomasv@electrum.org",
     license="MIT Licence",
     url="https://electrum.org",
-    long_description="""Lightweight Bitcoin Wallet""",
+    long_description="""Lightweight Gravity Wallet""",
 )

@@ -1,0 +1,22 @@
+# If you want Electrum to appear in a Linux app launcher ("start menu"), install this by doing:
+# sudo desktop-file-install electrum-gzro.desktop
+
+[Desktop Entry]
+Comment=Lightweight Gravity Client
+Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum-gzro %u"
+GenericName[en_US]=Gravity Wallet
+GenericName=Gravity Wallet
+Icon=electrum-gzro
+Name[en_US]=Electrum Gravity Wallet
+Name=Electrum Gravity Wallet
+Categories=Finance;Network;
+StartupNotify=true
+StartupWMClass=electrum
+Terminal=false
+Type=Application
+MimeType=x-scheme-handler/gravity;
+Actions=Testnet;
+
+[Desktop Action Testnet]
+Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum-gzro --testnet %u"
+Name=Testnet mode

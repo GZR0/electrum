@@ -160,9 +160,12 @@ RUN cd /opt \
     && git clone https://github.com/kivy/python-for-android \
     && cd python-for-android \
     && git remote add sombernight https://github.com/SomberNight/python-for-android \
+    && git remote add gzro https://github.com/GZR0/python-for-android \
     && git fetch --all \
     # commit: from branch sombernight/electrum_20200703
     && git checkout "0dd2ce87a8f380d20505ca5dc1e2d2357b4a08fc^{commit}" \
+       # gzro recipe
+    && git cherry-pick 47ac4be726b18101b62aa23ae02b41c748533be5 \
     && python3 -m pip install --user -e .
 
 # build env vars
