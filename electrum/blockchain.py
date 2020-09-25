@@ -20,6 +20,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import hashlib
 import os
 import threading
 import time
@@ -33,18 +34,7 @@ from .util import bfh, bh2u
 from .simple_config import SimpleConfig
 from .logging import get_logger, Logger
 
-
-import warnings
-# scrypt is outdated a little, ignore it's warning
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
-    try:
-        import scrypt
-        getPoWHash = scrypt.getPoWHash
-    except ImportError as e:
-        util.print_msg(str(e))
-        util.print_msg("Warning: package scrypt not available; synchronization could be very slow")
-        from .scrypt import scrypt_1024_1_1_80 as getPoWHash
+getPoWHash = lambda x: hashlib.scrypt(x, salt=x, n=1024, r=1, p=1, dklen=32)
 
 _logger = get_logger(__name__)
 
